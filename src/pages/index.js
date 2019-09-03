@@ -23,6 +23,10 @@ const COUNT_OPTIONS = [24, 21, 18, 15, 12];
 
 const Container = styled.div`
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    box-sizing: border-box;
+    div, input {
+        box-sizing: inherit;
+    }
     @media (${breakpoints.phone}) {
         font-size: 13px;
     }
@@ -110,7 +114,6 @@ const FlexRow = styled.div`
 const FlexItem = styled.div`
     flex: 0 0 16.6%;
     padding: 8px;
-    box-sizing: border-box;
     @media (${breakpoints.tablet}) {
         flex: 0 0 33.3%;
     }

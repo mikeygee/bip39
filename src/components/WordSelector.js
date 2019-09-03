@@ -1,14 +1,16 @@
 import React from 'react';
 import styled from 'styled-components';
 import { FixedSizeList as List } from 'react-window';
-import { IoIosCloseCircle } from 'react-icons/io';
+import {
+    IoIosCloseCircle,
+    IoIosArrowDown,
+    IoIosSearch
+} from 'react-icons/io';
+import cx from 'classnames';
+
+import { colors } from '../styles';
 
 const WORDLIST = require('../wordlists/english.json');
-
-const style = {
-    red: '#d63230',
-    blue: '#0060cb'
-};
 
 const Container = styled.div`
     position: relative;
@@ -21,42 +23,69 @@ const Container = styled.div`
             padding: 0 8px;
             cursor: default;
             &.highlighted {
+                background-color: ${colors.grayLight};
+            }
+            &.selected {
                 color: #fff;
-                background-color: ${style.blue};
+                background-color: ${colors.blue};
             }
         }
     }
 `;
 
-const ClearIcon = styled(IoIosCloseCircle)`
+const SelectOpenIcon = styled(IoIosArrowDown)`
     position: absolute;
     top: 5px;
     right: 0;
     padding: 4px;
-    color: #999;
     font-size: 20px;
     cursor: pointer;
 `;
 
-const WordInput = styled.input`
+const WordSelect = styled.input`
     display: block;
     border: 1px solid;
     border-radius: 3px;
     font-size: 16px;
     padding: 8px;
-    box-sizing: border-box;
     outline: none;
     width: 100%;
-    color: ${props => props.invalid ? style.red : 'inherit'};
+    cursor: pointer;
 `;
 
-const ErrorText = styled.div`
-    color: ${style.red};
-    font-size: 12px;
+const OptionsContainer = styled.div`
     position: absolute;
     width: 100%;
-    text-align: center;
-`
+    z-index: 1;
+`;
+
+const SearchInput = styled.input`
+    display: block;
+    outline: none;
+    width: 100%;
+    border: 1px solid #999;
+    border-width: 0 1px;
+    padding: 8px;
+    padding-left: 24px;
+    font-size: 12px;
+`;
+
+const SearchIcon = styled(IoIosSearch)`
+    position: absolute;
+    top: 7px;
+    left: 4px;
+    font-size: 16px;
+`;
+
+const SearchClearIcon = styled(IoIosCloseCircle)`
+    position: absolute;
+    top: 5px;
+    right: 0;
+    padding: 4px;
+    color: #999;
+    font-size: 16px;
+    cursor: pointer;
+`;
 
 class WordOption extends React.Component {
     handleClick = () => {
@@ -71,12 +100,15 @@ class WordOption extends React.Component {
     }
 
     render() {
-        const { word, highlighted, style } = this.props;
+        const { word, highlighted, selected, style } = this.props;
         return (
             <li
                 onMouseEnter={this.handleMouseEnter}
                 onClick={this.handleClick}
-                className={highlighted ? 'highlighted' : null}
+                className={cx({
+                    highlighted,
+                    selected
+                })}
                 style={style}
             >
                 {word}
@@ -90,12 +122,16 @@ class WordSelector extends React.Component {
         super(props);
         this.containerRef = React.createRef();
         this.listRef = React.createRef();
+        this.selectRef = React.createRef();
+        this.searchRef = React.createRef();
+        this.lastHoveredIndex = null;
         this.state = {
             options: WORDLIST || [],
             value: '',
+            index: null,
+            search: '',
             showOptions: false,
-            highlightedOptionIndex: 0,
-            invalid: false
+            highlightedOptionIndex: null
         };
     }
 
@@ -111,151 +147,175 @@ class WordSelector extends React.Component {
         const { showOptions } = this.state;
         console.log('outsideClick');
         if(showOptions && !this.containerRef.current.contains(e.target)) {
-            this.setState({ showOptions: false });
+            this.hideOptions();
         }
     }
 
-    updateOnChange = (value) => {
-        const props = this.props;
-        const { onChange } = props;
-        const wordList = WORDLIST || [];
-        const options = props.options || (!value ? wordList : wordList.filter((word) => word.indexOf(value) === 0));
-        const hasOptions = options.length > 0;
-        const isExactMatch = options.length === 1 && value.toLowerCase() === options[0];
+    handleFocus = () => {
+        const { value, index } = this.state;
         this.setState({
-            value,
-            options, 
-            invalid: !hasOptions,
-            highlightedOptionIndex: 0,
-            showOptions: hasOptions && !isExactMatch
-        });
-        onChange && onChange({
-            word: isExactMatch ? value : null,
-            index: isExactMatch ? wordList.indexOf(value) : null
-        });
+            showOptions: true,
+            highlightedOptionIndex: value ? index : null
+        }, this.showOptions);
     }
 
-    handleChange = (e) => {
-        console.log('onChange', e.target.value);
-        this.updateOnChange(e.target.value);
-    }
-    
-    handleClear = (e) => {
-        this.updateOnChange('');
-    }
-
-    handleFocus = (e) => {
-        console.log('focus', e.target.value);
+    showOptions = () => {
         const { value, options } = this.state;
-        const hasOptions = options.length > 0;
-        const isExactMatch = options.length === 1 && value.toLowerCase() === options[0];
-        this.setState({ showOptions: hasOptions && !isExactMatch });
+        if (value) {
+            const index = options.indexOf(value);
+            this.listRef.current.scrollToItem(index, 'center');
+        }
+    }
+
+    hideOptions = () => {
+        this.setState({
+            showOptions: false,
+            highlightedOptionIndex: null
+        });
+        this.lastHoveredIndex = null;
     }
 
     handleClick = (e) => {
-        const { options, showOptions } = this.state;
-        if (!showOptions && options.length > 1) {
-            this.handleFocus(e);
-        }
+        const { showOptions } = this.state;
+        this.handleFocus();
+    }
+
+    handleSearch = (e) => {
+        const query = e.target.value;
+        const wordList = WORDLIST || [];
+        this.setState({
+            search: query,
+            options: query === '' ? wordList : wordList.filter((word) => word.indexOf(query) === 0)
+        }) 
+    }
+
+    handleClearSearch = (e) => {
+        this.setState({
+            search: '',
+            options: WORDLIST || []
+        }, this.showOptions);
     }
 
     handleKeyDown = (e) => {
-        const { key } = e;
-        const { options, showOptions, highlightedOptionIndex } = this.state;
+        const { key, shiftKey, target } = e;
+        const { options, showOptions, highlightedOptionIndex} = this.state;
         console.log('keypress', key);
-        if (!showOptions || options.length === 0) {
-            return;
-        }
-        if (key === 'ArrowDown' && highlightedOptionIndex < options.length - 1) {
-            this.setState({ highlightedOptionIndex: highlightedOptionIndex + 1});
+        if (key === 'ArrowDown') {
+            if (highlightedOptionIndex === null) {
+                this.setState({ highlightedOptionIndex: 0 });
+            } else if (highlightedOptionIndex < options.length - 1) {
+                this.setState({ highlightedOptionIndex: highlightedOptionIndex + 1 });
+                this.listRef.current.scrollToItem(highlightedOptionIndex + 1);
+            }
         } else if (key === 'ArrowUp' && highlightedOptionIndex > 0) {
             this.setState({ highlightedOptionIndex: highlightedOptionIndex - 1});
+            this.listRef.current.scrollToItem(highlightedOptionIndex - 1);
         } else if (key === 'Enter') {
             this.handleConfirm(options[highlightedOptionIndex]);
         } else if (key === 'Escape') {
             this.setState({ showOptions: false });
+        } else if (key === 'Tab' && ((!shiftKey && target === this.searchRef.current) || (shiftKey && target === this.selectRef.current))) {
+            // hide options if tabbing out of component
+            this.hideOptions();
         }
     }
 
-    handleHighlight = (i) => {
-        this.setState({ highlightedOptionIndex: i });
+    handleHover = (i) => {
+        this.lastHoveredIndex = i;
+        this.setState({
+            highlightedOptionIndex: i
+        });
     }
 
     handleConfirm = (word) => {
         const { onChange } = this.props;
         const wordList = WORDLIST || [];
+        const index = wordList.indexOf(word);
         this.setState({
             value: word,
-            options: [word],
-            invalid: false,
-            highlightedOptionIndex: 0,
+            index,
+            search: '',
+            options: wordList,
+            highlightedOptionIndex: index,
             showOptions: false
         });
         onChange && onChange({
             word,
-            index: wordList.indexOf(word)
+            index
         });
     }
 
-    renderWordOption = ({ data, index, style }) => (
-        <WordOption
-            style={style}
-            word={data[index]}
-            index={index}
-            highlighted={index === this.state.highlightedOptionIndex}
-            onHighlight={this.handleHighlight}
-            onConfirm={this.handleConfirm}
-        />
-    )
+    renderWordOption = ({ data, index, style }) => {
+        const { highlightedOptionIndex, value } = this.state;
+        const word = data[index];
+        return (
+            <WordOption
+                style={style}
+                word={word}
+                index={index}
+                selected={value === word}
+                highlighted={index === highlightedOptionIndex}
+                onHighlight={this.handleHover}
+                onConfirm={this.handleConfirm}
+            />
+        );
+   }
 
     render() {
-        const { options, value, showOptions } = this.state;
+        const { options, value, search, showOptions } = this.state;
         const { index } = this.props;
-        const hasOptions = options.length > 0;
         const inputName = `word${index}`;
 
         return (
             <Container ref={this.containerRef}>
-                <WordInput
+                <WordSelect
+                    ref={this.selectRef}
                     type="text"
                     name={inputName}
                     placeholder={`Word ${index}`}
                     autoComplete="off"
+                    readOnly={true}
                     value={value}
-                    invalid={!hasOptions}
-                    onChange={this.handleChange}
                     onClick={this.handleClick}
                     onFocus={this.handleFocus}
                     onKeyDown={this.handleKeyDown}
                 />
-                {
-                    value !== '' ? (
-                        <ClearIcon onClick={this.handleClear} />
-                    ) : null
-                }
+                <SelectOpenIcon />
                 {
                     showOptions ? (
-                        <List
-                            ref={this.listRef}
-                            itemData={options}
-                            itemCount={options.length}
-                            itemSize={26}
-                            height={250}
-                            width="100%"
-                            innerElementType="ul"
-                            style={{
-                                marginTop: '8px',
-                                border: '1px solid',
-                                overflowX: 'hidden',
-                                position: 'absolute',
-                                zIndex: 1,
-                                backgroundColor: '#fff'
-                            }}
-                        >
-                            {this.renderWordOption}
-                        </List>
-                    ) : !hasOptions ? (
-                        <ErrorText>Invalid word</ErrorText>
+                        <OptionsContainer>
+                            <SearchInput
+                                ref={this.searchRef}
+                                type="text"
+                                value={search}
+                                onChange={this.handleSearch}
+                                onKeyDown={this.handleKeyDown}
+                            /> 
+                            <SearchIcon />
+                            {
+                                search !== '' ? (
+                                    <SearchClearIcon onClick={this.handleClearSearch} />
+                                ) : null
+                            }
+                            <List
+                                ref={this.listRef}
+                                itemData={options}
+                                itemCount={options.length}
+                                itemSize={26}
+                                height={250}
+                                width="100%"
+                                innerElementType="ul"
+                                style={{
+                                    border: '1px solid',
+                                    overflowX: 'hidden',
+                                    position: 'absolute',
+                                    zIndex: 1,
+                                    backgroundColor: '#fff'
+                                }}
+                            >
+                                {this.renderWordOption}
+                            </List>
+                        </OptionsContainer>
                     ) : null
                 }
             </Container>
