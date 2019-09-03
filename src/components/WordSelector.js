@@ -48,7 +48,6 @@ const WordSelect = styled.input`
     border-radius: 3px;
     font-size: 16px;
     padding: 8px;
-    outline: none;
     width: 100%;
     cursor: pointer;
 `;
@@ -57,6 +56,7 @@ const OptionsContainer = styled.div`
     position: absolute;
     width: 100%;
     z-index: 1;
+    margin-top: 2px;
 `;
 
 const SearchInput = styled.input`
@@ -64,7 +64,7 @@ const SearchInput = styled.input`
     outline: none;
     width: 100%;
     border: 1px solid #999;
-    border-width: 0 1px;
+    border-width: 1px 1px 0;
     padding: 8px;
     padding-left: 24px;
     font-size: 12px;
@@ -124,7 +124,6 @@ class WordSelector extends React.Component {
         this.listRef = React.createRef();
         this.selectRef = React.createRef();
         this.searchRef = React.createRef();
-        this.lastHoveredIndex = null;
         this.state = {
             options: WORDLIST || [],
             value: '',
@@ -145,39 +144,46 @@ class WordSelector extends React.Component {
 
     handleOutsideClick = (e) => {
         const { showOptions } = this.state;
-        console.log('outsideClick');
         if(showOptions && !this.containerRef.current.contains(e.target)) {
+            console.log('outsideClick');
             this.hideOptions();
         }
     }
 
-    handleFocus = () => {
+    showOptions = (e) => {
         const { value, index } = this.state;
         this.setState({
             showOptions: true,
             highlightedOptionIndex: value ? index : null
-        }, this.showOptions);
+        }, this.scrollToSelection);
     }
 
-    showOptions = () => {
+    hideOptions = () => {
+        this.setState({
+            showOptions: false,
+            highlightedOptionIndex: null,
+            search: '',
+            options: WORDLIST || []
+        });
+    }
+
+    scrollToSelection = () => {
         const { value, options } = this.state;
+        this.searchRef.current.focus();
         if (value) {
             const index = options.indexOf(value);
             this.listRef.current.scrollToItem(index, 'center');
         }
     }
 
-    hideOptions = () => {
-        this.setState({
-            showOptions: false,
-            highlightedOptionIndex: null
-        });
-        this.lastHoveredIndex = null;
-    }
-
     handleClick = (e) => {
+        console.log('handle click');
         const { showOptions } = this.state;
-        this.handleFocus();
+        if (!showOptions) {
+            this.showOptions();
+        } else {
+            this.hideOptions();
+        }
     }
 
     handleSearch = (e) => {
@@ -185,11 +191,13 @@ class WordSelector extends React.Component {
         const wordList = WORDLIST || [];
         this.setState({
             search: query,
-            options: query === '' ? wordList : wordList.filter((word) => word.indexOf(query) === 0)
+            options: query === '' ? wordList : wordList.filter((word) => word.indexOf(query) === 0),
+            highlightedOptionIndex: this.state.highlightedOptionIndex || 0
         }) 
     }
 
     handleClearSearch = (e) => {
+        e.stopPropagation();
         this.setState({
             search: '',
             options: WORDLIST || []
@@ -200,6 +208,10 @@ class WordSelector extends React.Component {
         const { key, shiftKey, target } = e;
         const { options, showOptions, highlightedOptionIndex} = this.state;
         console.log('keypress', key);
+        if (!showOptions && (key === 'Enter' || key === 'ArrowDown')) {
+            this.showOptions();
+            return;
+        }
         if (key === 'ArrowDown') {
             if (highlightedOptionIndex === null) {
                 this.setState({ highlightedOptionIndex: 0 });
@@ -211,17 +223,20 @@ class WordSelector extends React.Component {
             this.setState({ highlightedOptionIndex: highlightedOptionIndex - 1});
             this.listRef.current.scrollToItem(highlightedOptionIndex - 1);
         } else if (key === 'Enter') {
-            this.handleConfirm(options[highlightedOptionIndex]);
+            const word = options[highlightedOptionIndex];
+            if (word) {
+                this.handleConfirm(word);
+            } else {
+                this.hideOptions();
+                this.selectRef.current.focus();
+            }
         } else if (key === 'Escape') {
-            this.setState({ showOptions: false });
-        } else if (key === 'Tab' && ((!shiftKey && target === this.searchRef.current) || (shiftKey && target === this.selectRef.current))) {
-            // hide options if tabbing out of component
             this.hideOptions();
+            this.selectRef.current.focus();
         }
     }
 
     handleHover = (i) => {
-        this.lastHoveredIndex = i;
         this.setState({
             highlightedOptionIndex: i
         });
@@ -277,7 +292,6 @@ class WordSelector extends React.Component {
                     readOnly={true}
                     value={value}
                     onClick={this.handleClick}
-                    onFocus={this.handleFocus}
                     onKeyDown={this.handleKeyDown}
                 />
                 <SelectOpenIcon />
