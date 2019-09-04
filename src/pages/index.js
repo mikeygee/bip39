@@ -170,6 +170,8 @@ class App extends React.Component {
     handleCountChange = (wordCount) => {
         const { words } = this.state;
         const updatedWords = [...new Array(wordCount)].map((val, i) => words[i]);
+        const lastWordList = this.getEligibleFinalWords(updatedWords);
+        updatedWords[wordCount - 1] = lastWordList[0];
         this.setState({
             wordCount,
             words: updatedWords,
@@ -179,7 +181,7 @@ class App extends React.Component {
     getEligibleFinalWords = (words = []) => {
         const { wordList } = this.state;
         const wordCount = words.length;
-        let selectedWords = words.filter(() => true);
+        let selectedWords = words.filter((word) => !!word);
         if (selectedWords.length < (wordCount - 1)) {
             return [];
         } else if (selectedWords.length === wordCount) {

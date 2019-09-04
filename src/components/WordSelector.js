@@ -8,7 +8,7 @@ import {
 } from 'react-icons/io';
 import cx from 'classnames';
 
-import { colors } from '../styles';
+import { colors, breakpoints } from '../styles';
 
 const Container = styled.div`
     position: relative;
@@ -31,6 +31,35 @@ const Container = styled.div`
     }
 `;
 
+const WordSelect = styled.input`
+    display: block;
+    border: 1px solid;
+    border-radius: 3px;
+    font-size: 16px;
+    padding: 8px 14px;
+    width: 100%;
+    cursor: pointer;
+    @media (${breakpoints.phone}) {
+        font-size: 13px;
+        padding: 6px 12px;
+    }
+`;
+
+const WordIndexLabel = styled.label`
+    position: absolute;
+    top: -8px;
+    left: -8px;
+    height: 16px;
+    width: 16px;
+    font-size: 10px;
+    border-radius: 3px;
+    background-color: #333;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+`;
+
 const SelectOpenIcon = styled(IoIosArrowDown)`
     position: absolute;
     top: 5px;
@@ -38,16 +67,10 @@ const SelectOpenIcon = styled(IoIosArrowDown)`
     padding: 4px;
     font-size: 20px;
     cursor: pointer;
-`;
-
-const WordSelect = styled.input`
-    display: block;
-    border: 1px solid;
-    border-radius: 3px;
-    font-size: 16px;
-    padding: 8px;
-    width: 100%;
-    cursor: pointer;
+    @media (${breakpoints.phone}) {
+        top: 6px;
+        font-size: 13px;
+    }
 `;
 
 const OptionsContainer = styled.div`
@@ -302,6 +325,7 @@ class WordSelector extends React.Component {
                     onClick={this.handleClick}
                     onKeyDown={this.handleKeyDown}
                 />
+                <WordIndexLabel htmlFor={inputName}>{indexDisplay}</WordIndexLabel>
                 <SelectOpenIcon onClick={this.handleClick} />
                 {
                     showOptions ? (
