@@ -5,6 +5,9 @@ import WordSelector from '../components/WordSelector';
 
 import { colors, breakpoints } from '../styles';
 
+// english only for now, TODO: add other languages
+import WORDLIST from '../wordlists';
+
 import shajs from 'sha.js';
 const crypto = window.crypto || window.msCrypto;
 const ENTROPY_BITS_MAP = {
@@ -14,11 +17,15 @@ const ENTROPY_BITS_MAP = {
     '15': 160,
     '12': 128
 };
-// for left padding 0's
-const ZEROPAD8 = '00000000';
-const ZEROPAD32 = '00000000000000000000000000000000';
 
-const WORDLIST = require('../wordlists/english.json');
+// for left padding 0's
+function zeroFill (targetLen = 0, str = '') {
+    while (str.length < targetLen) {
+        str = '0' + str;
+    }
+    return str;
+}
+
 const COUNT_OPTIONS = [24, 21, 18, 15, 12];
 
 const Container = styled.div`
@@ -151,32 +158,84 @@ const WordCount = (props) => {
 };
 
 class App extends React.Component {
-    state = {
-        wordCount: 24,
-        words: []
+    constructor(props) {
+        super(props);
+        this.state = {
+            wordCount: 24,
+            words: new Array(24),
+            wordList: WORDLIST,
+            lastWordList: []
+        };
     }
     handleCountChange = (wordCount) => {
-        this.setState({ wordCount });
+        const { words } = this.state;
+        const updatedWords = [...new Array(wordCount)].map((val, i) => words[i]);
+        this.setState({
+            wordCount,
+            words: updatedWords,
+            lastWordList: this.getEligibleFinalWords(updatedWords)
+        });
+    }
+    getEligibleFinalWords = (words = []) => {
+        const { wordList } = this.state;
+        const wordCount = words.length;
+        let selectedWords = words.filter(() => true);
+        if (selectedWords.length < (wordCount - 1)) {
+            return [];
+        } else if (selectedWords.length === wordCount) {
+            selectedWords = words.slice(0, wordCount - 1);
+        }
+
+        const binaryString = selectedWords.map((word) => {
+            const index = wordList.indexOf(word);
+            let binary = Number(index).toString(2);
+            return zeroFill(11, binary);
+        }).join('');
+        const entropyLength = ENTROPY_BITS_MAP[wordCount];
+        const remainingBits = entropyLength - binaryString.length;
+        const numWords = Math.pow(2, remainingBits);
+        const sliceLen = entropyLength / 32;
+
+        const eligibleWords = [...new Array(numWords)].map((val, i) => {
+            let binaryIndex = zeroFill(remainingBits, Number(i).toString(2));
+            let binary = binaryString + binaryIndex;
+            let hex = [...new Array(sliceLen)].map((val, i) => {
+                let slice = binary.substr(i * 32, 32);
+                slice = parseInt(slice, 2).toString(16);
+                return zeroFill(8, slice);
+            }).join('');
+            const hash = shajs('sha256')
+                .update(hex, 'hex')
+                .digest('hex');
+            let checksum = parseInt(hash.substr(0, 2), 16).toString(2);
+            checksum = zeroFill(8, checksum).substr(0, wordCount * 11 - entropyLength);
+            const wordIndex = binaryIndex + checksum;
+            return wordList[parseInt(wordIndex, 2)];
+        });
+
+        console.log(eligibleWords);
+        return eligibleWords;
     }
     handleGenerate = () => {
-        const { wordCount } = this.state;
+        const { wordCount, wordList } = this.state;
         const entropyLength = ENTROPY_BITS_MAP[wordCount];
         // js random number limited to 32 bits, so need to concat for larger number
         const randomNumbersRequired = entropyLength / 32;
+        const randomNumbers = crypto.getRandomValues(new Uint32Array(randomNumbersRequired));
         let entropy = '';
         let hexEncoded = '';
-        for(let i = 0; i < randomNumbersRequired; i++) {
-            // generate 32 bit random number
-            let rand = crypto.getRandomValues(new Uint32Array(1))[0];
-            // convert to binary
+
+        randomNumbers.forEach((rand) => {
+            // convert to binary and hex strings
             let binary = Number(rand).toString(2);
             let hex = Number(rand).toString(16);
             // left pad 0's
-            binary = ZEROPAD32.substr(binary.length) + binary;
-            hex = ZEROPAD8.substr(hex.length) + hex;
+            binary = zeroFill(32, binary);
+            hex = zeroFill(8, hex);
             entropy += binary;
             hexEncoded += hex;
-        }
+        });
+
         console.log('entropy', entropy, entropy.length);
         console.log('hexEncoded', hexEncoded, hexEncoded.length);
         // get checksum (first n bits of sha256 hash to complete 11 bit word indices)
@@ -185,28 +244,54 @@ class App extends React.Component {
             .digest('hex');
         console.log('hash', hash, hash.length);
         let checksum = parseInt(hash.substr(0, 2), 16).toString(2);
-        checksum = (ZEROPAD8.substr(checksum.length) + checksum).substr(0, wordCount * 11 - entropyLength);
+        checksum = zeroFill(8, checksum).substr(0, wordCount * 11 - entropyLength);
         console.log('checksum', checksum);
         const mnemonic = entropy + checksum;
         console.log('mnemonic', mnemonic);
         // map to words
         const words = [];
-        const wordList = WORDLIST || [];
         for (let i = 0; i < wordCount; i++) {
             let binaryIndex = mnemonic.substr(i*11, 11);
             let decimalIndex = parseInt(binaryIndex, 2);
             words.push(wordList[decimalIndex]);
         }
         console.log(words.join(' '));
+        this.setState({
+            words,
+            lastWordList: this.getEligibleFinalWords(words)
+        });
+    }
+    handleChange = ({ word, index }) => {
+        console.log(word, index);
+        const { wordCount, words } = this.state;
+        const updatedWords = [...new Array(wordCount)].map((val, i) => {
+            return (i === index ? word : words[i]);
+        });
+        const lastWordList = this.getEligibleFinalWords(updatedWords);
+        if (index !== (wordCount - 1)) {
+            updatedWords[wordCount - 1] = lastWordList[0];
+        }
+        this.setState({
+            words: updatedWords,
+            lastWordList
+        });
     }
     render() {
-        const { wordCount } = this.state;
-
+        const { words, wordCount, wordList, lastWordList } = this.state;
         const wordSelectors = [];
-        for(let i = 0; i < wordCount; i++) {
+
+        for (let i = 0; i < wordCount; i++) {
+            let isLastWord = i === (wordCount - 1);
             wordSelectors.push(
                 <FlexItem key={`word${i}`}>
-                    <WordSelector index={i+1} />
+                    <WordSelector
+                        index={i}
+                        indexDisplay={i+1}
+                        word={words[i] || ''}
+                        wordList={isLastWord ? lastWordList : wordList}
+                        disabled={lastWordList.length === 0}
+                        onChange={this.handleChange}
+                    />
                 </FlexItem>
             );
         }

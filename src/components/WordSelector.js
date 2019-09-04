@@ -10,8 +10,6 @@ import cx from 'classnames';
 
 import { colors } from '../styles';
 
-const WORDLIST = require('../wordlists/english.json');
-
 const Container = styled.div`
     position: relative;
     ul {
@@ -89,8 +87,8 @@ const SearchClearIcon = styled(IoIosCloseCircle)`
 
 class WordOption extends React.Component {
     handleClick = () => {
-        const { word, onConfirm } = this.props;
-        onConfirm && onConfirm(word);
+        const { word, onSelect } = this.props;
+        onSelect && onSelect(word);
     }
 
     handleMouseEnter = () => {
@@ -125,9 +123,7 @@ class WordSelector extends React.Component {
         this.selectRef = React.createRef();
         this.searchRef = React.createRef();
         this.state = {
-            options: WORDLIST || [],
-            value: '',
-            index: null,
+            options: props.wordList,
             search: '',
             showOptions: false,
             highlightedOptionIndex: null
@@ -142,6 +138,15 @@ class WordSelector extends React.Component {
         window.removeEventListener('click', this.handleOutsideClick);
     }
 
+    componentDidUpdate(prevProps) {
+        const wordList = this.props.wordList;
+        if (prevProps.wordList !== wordList) {
+            this.setState({
+                options: wordList
+            });
+        }
+    }
+
     handleOutsideClick = (e) => {
         const { showOptions } = this.state;
         if(showOptions && !this.containerRef.current.contains(e.target)) {
@@ -151,10 +156,10 @@ class WordSelector extends React.Component {
     }
 
     showOptions = (e) => {
-        const { value, index } = this.state;
+        const { word, wordList } = this.props;
         this.setState({
             showOptions: true,
-            highlightedOptionIndex: value ? index : null
+            highlightedOptionIndex: word ? wordList.indexOf(word) : null
         }, this.scrollToSelection);
     }
 
@@ -163,15 +168,16 @@ class WordSelector extends React.Component {
             showOptions: false,
             highlightedOptionIndex: null,
             search: '',
-            options: WORDLIST || []
+            options: this.props.wordList
         });
     }
 
     scrollToSelection = () => {
-        const { value, options } = this.state;
+        const { options } = this.state;
+        const { word } = this.props;
         this.searchRef.current.focus();
-        if (value) {
-            const index = options.indexOf(value);
+        if (word) {
+            const index = options.indexOf(word);
             this.listRef.current.scrollToItem(index, 'center');
         }
     }
@@ -188,7 +194,7 @@ class WordSelector extends React.Component {
 
     handleSearch = (e) => {
         const query = e.target.value;
-        const wordList = WORDLIST || [];
+        const { wordList } = this.props;
         this.setState({
             search: query,
             options: query === '' ? wordList : wordList.filter((word) => word.indexOf(query) === 0),
@@ -200,7 +206,7 @@ class WordSelector extends React.Component {
         e.stopPropagation();
         this.setState({
             search: '',
-            options: WORDLIST || []
+            options: this.props.wordList
         }, this.showOptions);
     }
 
@@ -225,7 +231,7 @@ class WordSelector extends React.Component {
         } else if (key === 'Enter') {
             const word = options[highlightedOptionIndex];
             if (word) {
-                this.handleConfirm(word);
+                this.handleSelect(word);
             } else {
                 this.hideOptions();
                 this.selectRef.current.focus();
@@ -233,6 +239,9 @@ class WordSelector extends React.Component {
         } else if (key === 'Escape') {
             this.hideOptions();
             this.selectRef.current.focus();
+        } else if (key === 'Tab' && ((!shiftKey && target === this.searchRef.current) || (shiftKey && target === this.selectRef.current))) {
+            // hide options if tabbing out of component
+            this.hideOptions();
         }
     }
 
@@ -242,43 +251,42 @@ class WordSelector extends React.Component {
         });
     }
 
-    handleConfirm = (word) => {
-        const { onChange } = this.props;
-        const wordList = WORDLIST || [];
-        const index = wordList.indexOf(word);
+    handleSelect = (selectedWord) => {
+        const { onChange, wordList, word, index } = this.props;
         this.setState({
-            value: word,
-            index,
             search: '',
             options: wordList,
             highlightedOptionIndex: index,
             showOptions: false
         });
-        onChange && onChange({
-            word,
-            index
-        });
+        if (selectedWord !== word) {
+            onChange && onChange({
+                word: selectedWord,
+                index
+            });
+        }
     }
 
     renderWordOption = ({ data, index, style }) => {
-        const { highlightedOptionIndex, value } = this.state;
+        const { highlightedOptionIndex } = this.state;
+        const selectedWord = this.props.word;
         const word = data[index];
         return (
             <WordOption
                 style={style}
                 word={word}
                 index={index}
-                selected={value === word}
+                selected={selectedWord === word}
                 highlighted={index === highlightedOptionIndex}
                 onHighlight={this.handleHover}
-                onConfirm={this.handleConfirm}
+                onSelect={this.handleSelect}
             />
         );
    }
 
     render() {
-        const { options, value, search, showOptions } = this.state;
-        const { index } = this.props;
+        const { options, search, showOptions } = this.state;
+        const { index, indexDisplay, word } = this.props;
         const inputName = `word${index}`;
 
         return (
@@ -287,14 +295,14 @@ class WordSelector extends React.Component {
                     ref={this.selectRef}
                     type="text"
                     name={inputName}
-                    placeholder={`Word ${index}`}
+                    placeholder={`Word ${indexDisplay}`}
                     autoComplete="off"
                     readOnly={true}
-                    value={value}
+                    value={word}
                     onClick={this.handleClick}
                     onKeyDown={this.handleKeyDown}
                 />
-                <SelectOpenIcon />
+                <SelectOpenIcon onClick={this.handleClick} />
                 {
                     showOptions ? (
                         <OptionsContainer>
