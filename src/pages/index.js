@@ -183,6 +183,53 @@ class App extends React.Component {
             lastWordList: this.getEligibleFinalWords(updatedWords)
         });
     }
+    getEntropy = (words = []) => {
+        const { wordList } = this.state;
+        const wordCount = words.length;
+        let selectedWords = words.filter((word) => !!word);
+        if (selectedWords.length < wordCount) {
+            return {};
+        }
+        const entropyLength = ENTROPY_BITS_MAP[wordCount];
+        const binary = selectedWords.map((word) => {
+            const index = wordList.indexOf(word);
+            let bin = Number(index).toString(2);
+            return zeroFill(11, bin);
+        }).join('').slice(0, entropyLength);
+        const sliceLen = entropyLength / 32;
+        const hex = [...new Array(sliceLen)].map((val, i) => {
+            let slice = binary.substr(i * 32, 32);
+            slice = parseInt(slice, 2).toString(16);
+            return zeroFill(8, slice);
+        }).join('');
+        console.log({ binary, hex });
+        return { binary, hex };
+    }
+    getChecksum = (words = []) => {
+        const { hex } = this.getEntropy(words);
+        if (!hex) {
+            return;
+        }
+        const wordCount = words.length;
+        const hash = shajs('sha256')
+            .update(hex, 'hex')
+            .digest('hex');
+        let checksum = parseInt(hash.substr(0, 2), 16).toString(2);
+        const entropyLength = ENTROPY_BITS_MAP[wordCount];
+        const length = wordCount * 11 - entropyLength;
+        checksum = zeroFill(8, checksum).substr(0, length);
+
+        console.log({
+            fullChecksum: hash,
+            checksum,
+            length
+        });
+        return {
+            fullChecksum: hash,
+            checksum,
+            length
+        };
+    }
     getEligibleFinalWords = (words = []) => {
         const { wordList } = this.state;
         const wordCount = words.length;
@@ -265,7 +312,9 @@ class App extends React.Component {
         console.log(words.join(' '));
         this.setState({
             words,
-            lastWordList: this.getEligibleFinalWords(words)
+            lastWordList: this.getEligibleFinalWords(words),
+            entropy: this.getEntropy(words),
+            checksum: this.getChecksum(words)
         });
     }
     handleReset = () => {
@@ -285,9 +334,13 @@ class App extends React.Component {
         if (index !== (wordCount - 1)) {
             updatedWords[wordCount - 1] = lastWordList[0];
         }
+        const entropy = this.getEntropy(updatedWords);
+        const checksum = this.getChecksum(updatedWords);
         this.setState({
             words: updatedWords,
-            lastWordList
+            lastWordList,
+            entropy,
+            checksum
         });
     }
     render() {
