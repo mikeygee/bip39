@@ -220,7 +220,9 @@ class WordSelector extends React.Component {
         const { wordList } = this.props;
         this.setState({
             search: query,
-            options: query === '' ? wordList : wordList.filter((word) => word.indexOf(query) === 0),
+            options: query === '' ? wordList : wordList.filter((word) => word.indexOf(query) >= 0).sort((a, b) => {
+                return a.indexOf(query) - b.indexOf(query);
+            }),
             highlightedOptionIndex: this.state.highlightedOptionIndex || 0
         }) 
     }

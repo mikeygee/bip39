@@ -56,7 +56,7 @@ const CountContainer = styled.div`
     display: flex;
     border: 1px solid;
     border-radius: 4px;
-    margin-left: 8px;
+    margin: 0 10px;
 `;
 
 const RadioGroupLabel = styled.label`
@@ -101,12 +101,17 @@ const GenerateButton = styled.button`
     outline: none;
     cursor: pointer;
     font-size: 14px;
-    margin: 16px;
+    margin: 10px;
     &:hover {
         box-shadow: ${colors.blue} 0 0 0 2px;
     }
     transition-property: box-shadow;
     transition-duration: 0.1s;
+`;
+
+const ResetButton = styled(GenerateButton)`
+    background-color: transparent;
+    color: ${colors.blue};
 `;
 
 const FlexRow = styled.div`
@@ -263,6 +268,13 @@ class App extends React.Component {
             lastWordList: this.getEligibleFinalWords(words)
         });
     }
+    handleReset = () => {
+        const { wordCount } = this.state;
+        this.setState({
+            words: new Array(wordCount),
+            lastWordList: []
+        });
+    }
     handleChange = ({ word, index }) => {
         console.log(word, index);
         const { wordCount, words } = this.state;
@@ -309,6 +321,9 @@ class App extends React.Component {
                     <GenerateButton onClick={this.handleGenerate}>
                         Generate Random
                     </GenerateButton>
+                    <ResetButton onClick={this.handleReset}>
+                        Reset
+                    </ResetButton>
                 </CenteredRow>
                 <FlexRow>
                     {wordSelectors}
