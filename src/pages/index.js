@@ -9,6 +9,7 @@ import { colors, breakpoints } from '../styles';
 import WORDLIST from '../wordlists';
 
 import shajs from 'sha.js';
+import pbkdf2 from 'pbkdf2';
 const crypto = window.crypto || window.msCrypto;
 const ENTROPY_BITS_MAP = {
     '24': 256,
@@ -43,6 +44,18 @@ const Title = styled.h1`
     font-size: 24px;
     font-weight: bold;
     text-align: center;
+`;
+
+const Header = styled.h2`
+    font-size: 20px;
+    margin-bottom: 4px;
+`;
+
+const Subheader = styled.span`
+    font-size: 16px;
+    font-weight: normal;
+    color: ${colors.grayMedium};
+    margin-left: 8px;
 `;
 
 const CenteredRow = styled.div`
@@ -131,6 +144,42 @@ const FlexItem = styled.div`
     }
 `;
 
+const DetailsContainer = styled.div`
+    margin: 20px;
+`;
+
+const WordWithIndex = styled.div`
+    display: inline-block;
+    border: 1px solid;
+    border-radius: 3px;
+    padding: 4px;
+    margin: 4px;
+    margin-left: 0;
+    > div > span {
+        color: ${colors.grayMedium};
+        font-size: 13px;
+    }
+    > div:last-child {
+        font-size: 11px;
+    }
+`;
+
+const DetailsLabel = styled.span`
+    display: block;
+    font-weight: bold;
+    font-size: 12px;
+`;
+
+const LongString = styled.span`
+    display: inline-block;
+    word-break: break-all;
+    padding: 4px;
+    margin: 4px 0;
+    border: 1px solid;
+    border-radius: 3px;
+    background-color: ${colors.grayLight};
+`;
+
 
 const WordCount = (props) => {
     const { value, onChange } = props;
@@ -169,7 +218,9 @@ class App extends React.Component {
             wordCount: 24,
             words: new Array(24),
             wordList: WORDLIST,
-            lastWordList: []
+            lastWordList: [],
+            seed: '',
+            passphrase: ''
         };
     }
     handleCountChange = (wordCount) => {
@@ -177,10 +228,14 @@ class App extends React.Component {
         const updatedWords = [...new Array(wordCount)].map((val, i) => words[i]);
         const lastWordList = this.getEligibleFinalWords(updatedWords);
         updatedWords[wordCount - 1] = lastWordList[0];
+        const entropy = this.getEntropy(updatedWords);
+        const checksum = this.getChecksum(updatedWords);
         this.setState({
             wordCount,
             words: updatedWords,
-            lastWordList: this.getEligibleFinalWords(updatedWords)
+            lastWordList: this.getEligibleFinalWords(updatedWords),
+            entropy,
+            checksum
         });
     }
     getEntropy = (words = []) => {
@@ -220,13 +275,13 @@ class App extends React.Component {
         checksum = zeroFill(8, checksum).substr(0, length);
 
         console.log({
-            fullChecksum: hash,
+            hash,
             checksum,
             length
         });
         return {
-            fullChecksum: hash,
-            checksum,
+            hash,
+            firstBits: checksum,
             length
         };
     }
@@ -326,7 +381,7 @@ class App extends React.Component {
     }
     handleChange = ({ word, index }) => {
         console.log(word, index);
-        const { wordCount, words } = this.state;
+        const { wordCount, words, passphrase } = this.state;
         const updatedWords = [...new Array(wordCount)].map((val, i) => {
             return (i === index ? word : words[i]);
         });
@@ -336,16 +391,23 @@ class App extends React.Component {
         }
         const entropy = this.getEntropy(updatedWords);
         const checksum = this.getChecksum(updatedWords);
+        const seed = pbkdf2.pbkdf2Sync(updatedWords.join(' '), 'mnemonic' + (passphrase || ''), 2048, 64, 'sha512').reduce((prev, curr) => prev + zeroFill(2, curr.toString(16)), '');
+        console.log('seed', seed);
         this.setState({
             words: updatedWords,
             lastWordList,
             entropy,
-            checksum
+            checksum,
+            seed
         });
     }
     render() {
-        const { words, wordCount, wordList, lastWordList } = this.state;
+        const { words, wordCount, wordList, lastWordList, entropy, checksum, seed } = this.state;
         const wordSelectors = [];
+        const isCompleted = words.filter((word) => !!word).length === wordCount;
+        const entropyBits = ENTROPY_BITS_MAP[wordCount];
+        const leftoverBits = entropyBits - (11 * (wordCount - 1));
+        const totalBits = entropyBits + checksum.length;
 
         for (let i = 0; i < wordCount; i++) {
             let isLastWord = i === (wordCount - 1);
@@ -365,7 +427,7 @@ class App extends React.Component {
 
         return (
             <Container>
-                <Title>BIP39 Mnemonic Seed Phrase Builder</Title>
+                <Title>BIP39 Mnemonic Builder</Title>
                 <CenteredRow>
                     <WordCount
                         value={wordCount}
@@ -381,6 +443,56 @@ class App extends React.Component {
                 <FlexRow>
                     {wordSelectors}
                 </FlexRow>
+                { isCompleted ? (
+                    <DetailsContainer>
+                        <Header>
+                            Entropy &ndash; {entropyBits} bits
+                            <Subheader>
+                                {wordCount - 1} words &times; 11 bits = {entropyBits - leftoverBits} bits + {leftoverBits} extra bits = {Math.pow(2, leftoverBits)} valid last words
+                            </Subheader>
+                        </Header>
+                        <LongString>{entropy.hex}</LongString>
+                        <Header>
+                            Checksum - {checksum.length} bits
+                            <Subheader>
+                                First {checksum.length} bits of SHA-256 hash of entropy
+                            </Subheader>
+                        </Header>
+                        <div>
+                            <DetailsLabel>Hash</DetailsLabel>
+                            <LongString>{checksum.hash}</LongString>
+                        </div>
+                        <div>
+                            <DetailsLabel>First {checksum.length} bits</DetailsLabel>
+                            <LongString>{checksum.firstBits}</LongString>
+                        </div>
+                        <Header>
+                            Result - {totalBits} bits
+                            <Subheader>
+                                Entropy + checksum = {wordCount} words &times; 11 bits = {totalBits}.
+                            </Subheader>
+                        </Header>
+                        <div>
+                        {
+                            words.map((word) => {
+                                let listIndex = wordList.indexOf(word);
+                                let binary = zeroFill(11, listIndex.toString(2));
+                                return (
+                                    <WordWithIndex>
+                                        <div><strong>{word}</strong> <span>{listIndex}</span></div>
+                                        <div>{binary}</div>
+                                    </WordWithIndex>
+                                );
+                            })
+                        }
+                        </div>
+                        <Header>
+                            Seed - 512 bits
+                            <Subheader>PBKDF2 - SHA-512 / mnemonic words / optional passphrase / 2048 iterations</Subheader>
+                        </Header>
+                        <LongString>{seed}</LongString>
+                    </DetailsContainer>
+                ) : null }
             </Container>
         );
     }

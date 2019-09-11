@@ -223,7 +223,7 @@ class WordSelector extends React.Component {
             options: query === '' ? wordList : wordList.filter((word) => word.indexOf(query) >= 0).sort((a, b) => {
                 return a.indexOf(query) - b.indexOf(query);
             }),
-            highlightedOptionIndex: this.state.highlightedOptionIndex || 0
+            highlightedOptionIndex: 0
         }) 
     }
 
