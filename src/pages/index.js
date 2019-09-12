@@ -146,6 +146,12 @@ const FlexItem = styled.div`
 
 const DetailsContainer = styled.div`
     margin: 20px;
+    input {
+        padding: 4px;
+        border: 1px solid;
+        border-radius: 3px;
+        margin: 4px 0;
+    }
 `;
 
 const WordWithIndex = styled.div`
@@ -224,18 +230,20 @@ class App extends React.Component {
         };
     }
     handleCountChange = (wordCount) => {
-        const { words } = this.state;
+        const { words, passphrase } = this.state;
         const updatedWords = [...new Array(wordCount)].map((val, i) => words[i]);
         const lastWordList = this.getEligibleFinalWords(updatedWords);
         updatedWords[wordCount - 1] = lastWordList[0];
         const entropy = this.getEntropy(updatedWords);
         const checksum = this.getChecksum(updatedWords);
+        const seed = !checksum ? '' : pbkdf2.pbkdf2Sync(updatedWords.join(' '), 'mnemonic' + (passphrase || ''), 2048, 64, 'sha512').reduce((prev, curr) => prev + zeroFill(2, curr.toString(16)), '');
         this.setState({
             wordCount,
             words: updatedWords,
             lastWordList: this.getEligibleFinalWords(updatedWords),
             entropy,
-            checksum
+            checksum,
+            seed
         });
     }
     getEntropy = (words = []) => {
@@ -326,7 +334,7 @@ class App extends React.Component {
         return eligibleWords;
     }
     handleGenerate = () => {
-        const { wordCount, wordList } = this.state;
+        const { wordCount, wordList, passphrase } = this.state;
         const entropyLength = ENTROPY_BITS_MAP[wordCount];
         // js random number limited to 32 bits, so need to concat for larger number
         const randomNumbersRequired = entropyLength / 32;
@@ -365,18 +373,22 @@ class App extends React.Component {
             words.push(wordList[decimalIndex]);
         }
         console.log(words.join(' '));
+        const seed = pbkdf2.pbkdf2Sync(words.join(' '), 'mnemonic' + (passphrase || ''), 2048, 64, 'sha512').reduce((prev, curr) => prev + zeroFill(2, curr.toString(16)), '');
         this.setState({
             words,
             lastWordList: this.getEligibleFinalWords(words),
             entropy: this.getEntropy(words),
-            checksum: this.getChecksum(words)
+            checksum: this.getChecksum(words),
+            seed
         });
     }
     handleReset = () => {
         const { wordCount } = this.state;
         this.setState({
             words: new Array(wordCount),
-            lastWordList: []
+            lastWordList: [],
+            seed: '',
+            passphrase: ''
         });
     }
     handleChange = ({ word, index }) => {
@@ -401,13 +413,22 @@ class App extends React.Component {
             seed
         });
     }
+    handlePassphrase = (e) => {
+        const passphrase = e.target.value;
+        const { words } = this.state;
+        const seed = pbkdf2.pbkdf2Sync(words.join(' '), 'mnemonic' + (passphrase || ''), 2048, 64, 'sha512').reduce((prev, curr) => prev + zeroFill(2, curr.toString(16)), '');
+        this.setState({
+            seed,
+            passphrase
+        });
+    }
     render() {
         const { words, wordCount, wordList, lastWordList, entropy, checksum, seed } = this.state;
         const wordSelectors = [];
         const isCompleted = words.filter((word) => !!word).length === wordCount;
         const entropyBits = ENTROPY_BITS_MAP[wordCount];
         const leftoverBits = entropyBits - (11 * (wordCount - 1));
-        const totalBits = entropyBits + checksum.length;
+        const totalBits = entropyBits + (checksum || {}).length;
 
         for (let i = 0; i < wordCount; i++) {
             let isLastWord = i === (wordCount - 1);
@@ -446,7 +467,7 @@ class App extends React.Component {
                 { isCompleted ? (
                     <DetailsContainer>
                         <Header>
-                            Entropy &ndash; {entropyBits} bits
+                            Entropy - {entropyBits} bits
                             <Subheader>
                                 {wordCount - 1} words &times; 11 bits = {entropyBits - leftoverBits} bits + {leftoverBits} extra bits = {Math.pow(2, leftoverBits)} valid last words
                             </Subheader>
@@ -469,7 +490,7 @@ class App extends React.Component {
                         <Header>
                             Result - {totalBits} bits
                             <Subheader>
-                                Entropy + checksum = {wordCount} words &times; 11 bits = {totalBits}.
+                                Entropy + checksum = {wordCount} words &times; 11 bits = {totalBits}. Word / index / binary index.
                             </Subheader>
                         </Header>
                         <div>
@@ -488,8 +509,15 @@ class App extends React.Component {
                         </div>
                         <Header>
                             Seed - 512 bits
-                            <Subheader>PBKDF2 - SHA-512 / mnemonic words / optional passphrase / 2048 iterations</Subheader>
+                            <Subheader>PBKDF2 - SHA-512 / 2048 iterations</Subheader>
                         </Header>
+                        <div>
+                            <DetailsLabel>Optional Passphrase</DetailsLabel>
+                            <input
+                                type="text" 
+                                onChange={this.handlePassphrase}
+                            />
+                        </div>
                         <LongString>{seed}</LongString>
                     </DetailsContainer>
                 ) : null }
