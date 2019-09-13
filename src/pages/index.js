@@ -11,7 +11,7 @@ import WORDLIST from '../wordlists';
 import {
     ENTROPY_BITS_MAP,
     LENGTH_OPTIONS,
-    getBreakdown,
+    getDetails,
     getSeed,
     generateRandomMnemonic,
     zeroFill,
@@ -219,6 +219,7 @@ class App extends React.Component {
             passphrase: '',
         };
     }
+
     handleCountChange = wordCount => {
         const { words, wordList, passphrase } = this.state;
         const updatedWords = [...new Array(wordCount)].map(
@@ -228,20 +229,22 @@ class App extends React.Component {
         this.setState({
             wordCount,
             words: updatedWords,
-            ...getBreakdown(updatedWords, wordList),
+            ...getDetails(updatedWords, wordList),
             seed: isCompleted ? getSeed(updatedWords, passphrase) : '',
             passphrase: isCompleted ? passphrase : '',
         });
     };
+    
     handleGenerate = () => {
         const { wordCount, wordList, passphrase } = this.state;
         const words = generateRandomMnemonic(wordCount, wordList);
         this.setState({
             words,
-            ...getBreakdown(words, wordList),
+            ...getDetails(words, wordList),
             seed: getSeed(words, passphrase),
         });
     };
+    
     handleReset = () => {
         const { wordCount } = this.state;
         this.setState({
@@ -252,12 +255,13 @@ class App extends React.Component {
             passphrase: '',
         });
     };
+    
     handleChange = ({ word, index }) => {
         const { wordCount, words, wordList, passphrase } = this.state;
         const updatedWords = [...new Array(wordCount)].map((val, i) => {
             return i === index ? word : words[i];
         });
-        const breakdown = getBreakdown(updatedWords, wordList);
+        const breakdown = getDetails(updatedWords, wordList);
         const { validLastWords, isCompleted } = breakdown;
         if (isCompleted && index !== wordCount - 1) {
             updatedWords[wordCount - 1] = validLastWords[0];
@@ -265,13 +269,15 @@ class App extends React.Component {
 
         this.setState({
             words: updatedWords,
-            ...getBreakdown(updatedWords, wordList),
+            ...getDetails(updatedWords, wordList),
             seed: getSeed(updatedWords, passphrase),
         });
     };
+    
     handlePassphrase = e => {
         this.handlePassphraseDebounce(e.target.value);
     };
+    
     handlePassphraseDebounce = debounce(passphrase => {
         const { words } = this.state;
         this.setState({
@@ -279,6 +285,7 @@ class App extends React.Component {
             passphrase,
         });
     }, 250);
+    
     renderWordWithIndex = (word, i) => {
         const { wordList } = this.state;
         const listIndex = wordList.indexOf(word);
@@ -293,6 +300,7 @@ class App extends React.Component {
             </WordWithIndex>
         );
     }
+    
     render() {
         const {
             words,
@@ -401,4 +409,5 @@ class App extends React.Component {
         );
     }
 }
+
 export default App;

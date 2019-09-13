@@ -37,10 +37,10 @@ export function binaryToHex(binaryString = '') {
  *
  * @param {string[]} words - Array of words, must have length of desired mnemonic
  * @param {string[]} wordList - BIP 39 wordlist, 2048 words to choose from
- * @return {{ isCompleted: boolean, entropy: { binary: string, hex: string }, checksum: { hash: string, firstBits: string, length: number }, validLastWords: string[]}} - isCompleted: no empty or falsy values in the words array, entropy: binary and hex encodings of concatenated word indexes, checksum: SHA-256 hash of entropy, validLastWords: given n-1 words, a list of words that are valid for the last word
+ * @return {{ isCompleted: boolean, entropy: { binary: string, hex: string }, checksum: { hash: string, firstBits: string, length: number }, validLastWords: string[]}} isCompleted: no empty or falsy values in the words array, entropy: binary and hex encodings of concatenated word indexes, checksum: SHA-256 hash of entropy, validLastWords: given n-1 words, a list of words that are valid for the last word
  *
  */
-export function getBreakdown(words = [], wordList = []) {
+export function getDetails(words = [], wordList = []) {
     const mnemonicLength = words.length;
     const selectedWords = words.filter(word => !!word);
     const selectedLength = selectedWords.length;
