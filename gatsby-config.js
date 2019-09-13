@@ -5,8 +5,8 @@
  */
 
 module.exports = {
-  siteMetadata: {
-    title: 'BIP39 Mnemonic Seed Builder'
-  },
-  plugins: [`gatsby-plugin-styled-components`]
-}
+    siteMetadata: {
+        title: 'BIP39 Mnemonic Seed Builder',
+    },
+    plugins: [`gatsby-plugin-styled-components`],
+};
