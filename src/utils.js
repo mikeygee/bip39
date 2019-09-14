@@ -1,6 +1,6 @@
 import shajs from 'sha.js';
 import pbkdf2 from 'pbkdf2';
-const crypto = window.crypto || window.msCrypto;
+const crypto = typeof window === 'undefined' ? require('crypto') : (window.crypto || window.msCrypto);
 
 export const ENTROPY_BITS_MAP = {
     '24': 256,
@@ -12,14 +12,14 @@ export const ENTROPY_BITS_MAP = {
 
 export const LENGTH_OPTIONS = [24, 21, 18, 15, 12];
 
-export function zeroFill(str = '', targetLen = 0) {
+export function zeroFill (str = '', targetLen = 0) {
     while (str.length < targetLen) {
         str = '0' + str;
     }
     return str;
 }
 
-export function binaryToHex(binaryString = '') {
+export function binaryToHex (binaryString = '') {
     const sliceLength = 32; // slice into 32 bit numbers for reencoding
     const slices = binaryString.length / sliceLength;
     let hex = '';
@@ -40,7 +40,7 @@ export function binaryToHex(binaryString = '') {
  * @return {{ isCompleted: boolean, entropy: { binary: string, hex: string }, checksum: { hash: string, firstBits: string, length: number }, validLastWords: string[]}} isCompleted: no empty or falsy values in the words array, entropy: binary and hex encodings of concatenated word indexes, checksum: SHA-256 hash of entropy, validLastWords: given n-1 words, a list of words that are valid for the last word
  *
  */
-export function getDetails(words = [], wordList = []) {
+export function getDetails (words = [], wordList = []) {
     const mnemonicLength = words.length;
     const selectedWords = words.filter(word => !!word);
     const selectedLength = selectedWords.length;
@@ -111,7 +111,7 @@ export function getDetails(words = [], wordList = []) {
     };
 }
 
-export function generateRandomMnemonic(length = 24, wordList = []) {
+export function generateRandomMnemonic (length = 24, wordList = []) {
     const entropyLength = ENTROPY_BITS_MAP[length];
     const checksumLength = length * 11 - entropyLength;
     // js random number limited to 32 bits, so need to concat for larger number
@@ -152,7 +152,7 @@ export function generateRandomMnemonic(length = 24, wordList = []) {
     return words;
 }
 
-export function getSeed(words = [], passphrase = '') {
+export function getSeed (words = [], passphrase = '') {
     return pbkdf2
         .pbkdf2Sync(
             words.join(' '),
