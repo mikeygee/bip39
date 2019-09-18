@@ -27,7 +27,9 @@ export function zeroFill(str = '', targetLen = 0) {
  */
 export function binaryToHex(binaryString = '') {
     const chunks = binaryString.match(/.{1,32}/g) || []; // split into array of 32 bit chunks
-    return chunks.map(chunk => zeroFill(parseInt(chunk, 2).toString(16), 8)).join('');
+    return chunks
+        .map(chunk => zeroFill(parseInt(chunk, 2).toString(16), 8))
+        .join('');
 }
 
 /**
