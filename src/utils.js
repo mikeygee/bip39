@@ -26,16 +26,8 @@ export function zeroFill(str = '', targetLen = 0) {
  *
  */
 export function binaryToHex(binaryString = '') {
-    const sliceLength = 32; // slice into 32 bit numbers for reencoding
-    const slices = binaryString.length / sliceLength;
-    let hex = '';
-    for (let i = 0; i < slices; i++) {
-        hex += zeroFill(
-            parseInt(binaryString.substr(i * 32, 32), 2).toString(16),
-            8
-        );
-    }
-    return hex;
+    const chunks = binaryString.match(/.{1,32}/g) || []; // split into array of 32 bit chunks
+    return chunks.map(chunk => zeroFill(parseInt(chunk, 2).toString(16), 8)).join('');
 }
 
 /**
@@ -134,8 +126,8 @@ export function generateRandomMnemonic(length = 24, wordList = []) {
 
     randomNumbers.forEach(rand => {
         // convert to binary and hex strings
-        let binary = Number(rand).toString(2);
-        let hex = Number(rand).toString(16);
+        let binary = rand.toString(2);
+        let hex = rand.toString(16);
         // left pad 0's
         binary = zeroFill(binary, 32);
         hex = zeroFill(hex, 8);
