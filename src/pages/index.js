@@ -27,6 +27,7 @@ const Container = styled.div`
     input {
         box-sizing: inherit;
     }
+    color: ${colors.textPrimary};
     @media (${breakpoints.phone}) {
         font-size: 13px;
     }
@@ -46,7 +47,7 @@ const Header = styled.h2`
 const Subheader = styled.span`
     font-size: 16px;
     font-weight: normal;
-    color: ${colors.grayMedium};
+    color: ${colors.textSecondary};
     margin-left: 8px;
 `;
 
@@ -73,11 +74,11 @@ const CountLabel = styled.label`
     cursor: pointer;
     border-right: 1px solid;
     &:hover {
-        background-color: ${colors.grayLight};
+        background-color: ${colors.bgHover};
     }
     &.selected {
-        color: #fff;
-        background-color: ${colors.blue};
+        color: ${colors.textSelected};
+        background-color: ${colors.bgSelected};
     }
     &:first-child {
         border-radius: 4px 0 0 4px;
@@ -99,16 +100,16 @@ const CountRadio = styled.input.attrs(() => ({
 
 const GenerateButton = styled.button`
     padding: 6px 20px;
-    background-color: ${colors.blue};
-    border: 2px solid ${colors.blue};
-    color: #fff;
+    background-color: ${colors.bgAccent};
+    border: 2px solid ${colors.bgAccent};
+    color: ${colors.textAccent};
     border-radius: 18px;
     outline: none;
     cursor: pointer;
     font-size: 14px;
     margin: 10px;
     &:hover {
-        box-shadow: ${colors.blue} 0 0 0 2px;
+        box-shadow: ${colors.bgAccent} 0 0 0 2px;
     }
     transition-property: box-shadow;
     transition-duration: 0.1s;
@@ -116,7 +117,7 @@ const GenerateButton = styled.button`
 
 const ResetButton = styled(GenerateButton)`
     background-color: transparent;
-    color: ${colors.blue};
+    color: ${colors.bgAccent};
 `;
 
 const FlexRow = styled.div`
@@ -154,7 +155,7 @@ const WordWithIndex = styled.div`
     margin: 4px;
     margin-left: 0;
     > div > span {
-        color: ${colors.grayMedium};
+        color: ${colors.textSecondary};
         font-size: 13px;
     }
     > div:last-child {
@@ -175,14 +176,14 @@ const LongString = styled.span`
     margin: 4px 0;
     border: 1px solid;
     border-radius: 3px;
-    background-color: ${colors.grayLight};
+    background-color: ${colors.bgSecondary};
 `;
 
 const WordCount = props => {
     const { value, onChange } = props;
     return (
         <CenteredRow>
-            <RadioGroupLabel>Word count</RadioGroupLabel>
+            <RadioGroupLabel>Length</RadioGroupLabel>
             <CountContainer>
                 {LENGTH_OPTIONS.map(count => {
                     const isSelected = value === count;
@@ -234,7 +235,7 @@ class App extends React.Component {
             passphrase: isCompleted ? passphrase : '',
         });
     };
-    
+
     handleGenerate = () => {
         const { wordCount, wordList, passphrase } = this.state;
         const words = generateRandomMnemonic(wordCount, wordList);
@@ -244,7 +245,7 @@ class App extends React.Component {
             seed: getSeed(words, passphrase),
         });
     };
-    
+
     handleReset = () => {
         const { wordCount } = this.state;
         this.setState({
@@ -255,7 +256,7 @@ class App extends React.Component {
             passphrase: '',
         });
     };
-    
+
     handleChange = ({ word, index }) => {
         const { wordCount, words, wordList, passphrase } = this.state;
         const updatedWords = [...new Array(wordCount)].map((val, i) => {
@@ -273,11 +274,11 @@ class App extends React.Component {
             seed: getSeed(updatedWords, passphrase),
         });
     };
-    
+
     handlePassphrase = e => {
         this.handlePassphraseDebounce(e.target.value);
     };
-    
+
     handlePassphraseDebounce = debounce(passphrase => {
         const { words } = this.state;
         this.setState({
@@ -285,7 +286,7 @@ class App extends React.Component {
             passphrase,
         });
     }, 250);
-    
+
     renderWordWithIndex = (word, i) => {
         const { wordList } = this.state;
         const listIndex = wordList.indexOf(word);
@@ -293,14 +294,13 @@ class App extends React.Component {
         return (
             <WordWithIndex key={`wi${i}`}>
                 <div>
-                    <strong>{word}</strong>{' '}
-                    <span>{listIndex}</span>
+                    <strong>{word}</strong> <span>{listIndex}</span>
                 </div>
                 <div>{binary}</div>
             </WordWithIndex>
         );
-    }
-    
+    };
+
     render() {
         const {
             words,
@@ -386,9 +386,7 @@ class App extends React.Component {
                                 index.
                             </Subheader>
                         </Header>
-                        <div>
-                            {words.map(this.renderWordWithIndex)}
-                        </div>
+                        <div>{words.map(this.renderWordWithIndex)}</div>
                         <Header>
                             Seed - 512 bits
                             <Subheader>

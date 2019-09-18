@@ -17,11 +17,11 @@ const Container = styled.div`
             padding: 0 8px;
             cursor: default;
             &.highlighted {
-                background-color: ${colors.grayLight};
+                background-color: ${colors.bgHover};
             }
             &.selected {
-                color: #fff;
-                background-color: ${colors.blue};
+                color: ${colors.textSelected};
+                background-color: ${colors.bgSelected};
             }
         }
     }
@@ -49,8 +49,8 @@ const WordIndexLabel = styled.label`
     width: 16px;
     font-size: 10px;
     border-radius: 3px;
-    background-color: #333;
-    color: #fff;
+    background-color: ${colors.bgInverse};
+    color: ${colors.textInverse}
     display: flex;
     align-items: center;
     justify-content: center;
@@ -80,7 +80,7 @@ const SearchInput = styled.input`
     display: block;
     outline: none;
     width: 100%;
-    border: 1px solid #999;
+    border: 1px solid ${colors.textSecondary};
     border-width: 1px 1px 0;
     padding: 8px;
     padding-left: 24px;
@@ -99,7 +99,7 @@ const SearchClearIcon = styled(IoIosCloseCircle)`
     top: 5px;
     right: 0;
     padding: 4px;
-    color: #999;
+    color: ${colors.textSecondary};
     font-size: 16px;
     cursor: pointer;
 `;
@@ -369,7 +369,7 @@ class WordSelector extends React.Component {
                                 overflowX: 'hidden',
                                 position: 'absolute',
                                 zIndex: 1,
-                                backgroundColor: '#fff',
+                                backgroundColor: colors.bgPrimary,
                             }}
                         >
                             {this.renderWordOption}
