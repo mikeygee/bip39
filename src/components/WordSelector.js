@@ -50,7 +50,7 @@ const WordIndexLabel = styled.label`
     font-size: 10px;
     border-radius: 3px;
     background-color: ${colors.bgInverse};
-    color: ${colors.textInverse}
+    color: ${colors.textInverse};
     display: flex;
     align-items: center;
     justify-content: center;
