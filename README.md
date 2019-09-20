@@ -1,6 +1,6 @@
 # BIP39 Mnemonic Builder
 
-This tool allows you to customize the words of your backup / recovery mnemonic seed phrase for creating a new Bitcoin deterministic wallet.
+This tool allows you to customize the words of the BIP39 mnemonic seed phrase used for creating or recovering a Bitcoin deterministic wallet.
 
 ## Background
 
@@ -12,7 +12,7 @@ This tool inverts the process by having the user choose words, and concatenating
 
 ## Motivation
 
-Why might you want to do this? This project was born out of my own curiosity. I was intrigued by the concept of a [brain wallet](https://en.bitcoin.it/wiki/Brainwallet), where Bitcoin is held exclusively in your own memory. For this case, you might want to construct a phrase that you are likely to remember long term, maybe based on a quote or passage you know by heart. Or if you already have a randomly generated phrase memorized, and you want to create additional wallets, you could start with the same phrase and switch out a few words or change the ordering. Or maybe you just want to have some fun with words. In any case, it led me down the rabbit hole of researching how the phrase is generated and then building this tool.
+Why might you want to do this? This project was born out of my own curiosity. I was intrigued by the concept of a [brain wallet](https://en.bitcoin.it/wiki/Brainwallet), where Bitcoin is held exclusively in your own memory. For this case, you might want to construct a phrase that you are likely to remember long term, maybe based on a quote or passage you know by heart. Or if you already have a randomly generated phrase memorized, and you want to create additional wallets for a multisig setup, you could start with the same phrase and switch out a few words or change the ordering. Or maybe you just want to have some fun with words. In any case, it led me down the rabbit hole of researching how the phrase is generated and then building this tool.
 
 ## How to use
 
@@ -28,6 +28,6 @@ This project was built with the [Gatsby](https://www.gatsbyjs.org) static site g
 
 ## Security considerations
 
-Choosing your own words is less secure than using a randomly generated mnemonic. There is a greater chance an attacker can guess your phrase if it is not random. On the flip side, there is also a greater chance of remembering a custom phrase in the case you lose your backups by accident. Overall, random is still better, but if you're willing to accept the tradeoffs, a custom mnemonic can be useful. It is another tool to have in the wide spectrum of security systems.
+Choosing your own words is less secure than using a randomly generated mnemonic. There is a greater chance an attacker can guess your phrase if it is not random. On the flip side, there is also a greater chance of remembering a custom phrase in case you lose your backups by accident. Overall, random is still better, but if you're willing to accept the tradeoffs, a custom mnemonic can be useful. It is another tool to have in the wide spectrum of security systems.
 
 Brain wallets are extremely risky, given the human memory can fail in many ways. They should only be used as a last resort or for small amounts of funds you wouldn't mind losing. It is important to have multiple backups, memorization being one form of backup.

@@ -312,8 +312,8 @@ class App extends React.Component {
             seed,
             isCompleted,
         } = this.state;
-        console.log(this.state);
-        console.log(words.join(' '));
+        // console.log(this.state);
+        // console.log(words.join(' '));
         const wordSelectors = [];
         const entropyBits = ENTROPY_BITS_MAP[wordCount];
         const leftoverBits = entropyBits - 11 * (wordCount - 1);
