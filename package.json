@@ -30,12 +30,23 @@
     "@babel/core": "^7.6.0",
     "@babel/preset-env": "^7.6.0",
     "babel-jest": "^24.9.0",
+    "babel-preset-gatsby": "^0.2.14",
     "jest": "^24.9.0",
-    "prettier": "^1.18.2"
+    "prettier": "^1.18.2",
+    "react-test-renderer": "^16.9.0"
   },
   "jest": {
     "collectCoverage": true,
-    "coverageDirectory": "coverage"
+    "coverageDirectory": "coverage",
+    "transform": {
+      "^.+\\.jsx?$": "<rootDir>/jest-preprocess.js"
+    },
+    "testPathIgnorePatterns": ["node_modules", ".cache", "public"],
+    "transformIgnorePatterns": ["node_modules/(?!(gatsby)/)"],
+    "globals": {
+      "__PATH_PREFIX__": ""
+    },
+    "setupFiles": ["<rootDir>/loadershim.js"]
   },
   "repository": {
     "type": "git",
