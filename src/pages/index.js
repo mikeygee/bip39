@@ -227,7 +227,11 @@ class App extends React.Component {
         const updatedWords = [...new Array(wordCount)].map(
             (val, i) => words[i]
         );
-        const isCompleted = !updatedWords.some(word => !word);
+        const details = getDetails(updatedWords, wordList);
+        const { validLastWords, isCompleted } = details;
+        if (isCompleted) {
+            updatedWords[wordCount - 1] = validLastWords[0];
+        }
         this.setState({
             wordCount,
             words: updatedWords,
@@ -263,8 +267,8 @@ class App extends React.Component {
         const updatedWords = [...new Array(wordCount)].map((val, i) => {
             return i === index ? word : words[i];
         });
-        const breakdown = getDetails(updatedWords, wordList);
-        const { validLastWords, isCompleted } = breakdown;
+        const details = getDetails(updatedWords, wordList);
+        const { validLastWords, isCompleted } = details;
         if (isCompleted && index !== wordCount - 1) {
             updatedWords[wordCount - 1] = validLastWords[0];
         }
