@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { Helmet } from 'react-helmet';
 
 import WordSelector from '../components/WordSelector';
 
@@ -337,6 +338,10 @@ class App extends React.Component {
 
         return (
             <Container>
+                <Helmet>
+                    <title>BIP39 Mnemonic Builder</title>
+                    <meta name="description" content="Create a custom recovery seed phrase for your bitcoin wallet."></meta>
+                </Helmet>
                 <Title>BIP39 Mnemonic Builder</Title>
                 <CenteredRow>
                     <WordCount
