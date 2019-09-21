@@ -127,9 +127,9 @@ const correctOutput = [
                 '86560a7297af30d54e721665fa785b4870045407d86871b2be23c46535dd42d8',
         },
         checksum: {
-            firstBits: '00111000',
+            firstBits: '01110000',
             hash:
-                '9b96ec77668177e49eb666befbd93f136c3ce05d94244da0355fc3f8d234da9a',
+                '7040d5e63e851b68dd061099a1b63c6dff332ae9048f0ac3770aefa637436b72',
             length: 8,
         },
         validLastWords: [
@@ -151,9 +151,9 @@ const correctOutput = [
             hex: '3db6fa5444b713751db9bca56eccd91c906e8eab3afd169d53b409d1',
         },
         checksum: {
-            firstBits: '1000010',
+            firstBits: '0000100',
             hash:
-                '678d443fef2eeba2eefaea898aabf8aadfd9d5bbf175b5c495884cfc74476d03',
+                '086e5826c02f7d60cc9670eb7d2321ee46de229a580452294e0447514bb79ce7',
             length: 7,
         },
         validLastWords: [
@@ -183,9 +183,9 @@ const correctOutput = [
             hex: '684b417a092c301479bc5f25b4cf2bf6f64d51e897cbd2f8',
         },
         checksum: {
-            firstBits: '001000',
+            firstBits: '010001',
             hash:
-                '7713e376f4f73ca9862dfbf0a6b456a9a12e5307bffd355e84a4b07cca439687',
+                '4410f5505f69c68b8c41eebda3bb5f393d6a634d26b5bed26df36b2cd0d55e01',
             length: 6,
         },
         validLastWords: [
@@ -231,9 +231,9 @@ const correctOutput = [
             hex: '97dbad9d34a1bdebac40b362ca93bca82a8fe3a7',
         },
         checksum: {
-            firstBits: '10000',
+            firstBits: '00001',
             hash:
-                '620091bf56350f59df0258d21796fbb78039140ac9d3c7dbee718c0647be34db',
+                '0b1af64fc5423122014a652be5d927b2f17b2707f9b0c105b45bb0a5b64dc743',
             length: 5,
         },
         validLastWords: [
@@ -311,9 +311,9 @@ const correctOutput = [
             hex: '23fd0b33e32963fc09fef3f29bdd1fd2',
         },
         checksum: {
-            firstBits: '0011',
+            firstBits: '0110',
             hash:
-                '271eb478eea41ee11ae7af4f3f925d6ceb1b789967e7e6c832d3d7814599aebc',
+                '61d4348323ece8316dcde9870d5c9185a8ce9cc5e365c44b0deee1bc31e0aa9e',
             length: 4,
         },
         validLastWords: [

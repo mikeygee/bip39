@@ -82,9 +82,9 @@ export function getDetails(words = [], wordList = []) {
     const checksum = isCompleted
         ? {
               hash: shajs('sha256')
-                  .update(binaryToHex(entropyBinary))
+                  .update(binaryToHex(entropyBinary), 'hex')
                   .digest('hex'),
-              firstBits: binaryString.substr(entropyLength - 1, checksumLength),
+              firstBits: binaryString.substr(entropyLength, checksumLength),
               length: checksumLength,
           }
         : {};
