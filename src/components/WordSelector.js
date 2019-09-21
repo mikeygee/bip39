@@ -35,6 +35,7 @@ const WordSelect = styled.input`
     padding: 8px 14px;
     width: 100%;
     cursor: pointer;
+    -webkit-appearance: none;
     @media (${breakpoints.phone}) {
         font-size: 13px;
         padding: 6px 12px;
@@ -82,16 +83,25 @@ const SearchInput = styled.input`
     width: 100%;
     border: 1px solid ${colors.textSecondary};
     border-width: 1px 1px 0;
-    padding: 8px;
-    padding-left: 24px;
+    border-radius: 0;
+    margin: 0;
+    padding: 8px 24px;
     font-size: 12px;
-`;
+    -webkit-appearance: none;
+    @media (${breakpoints.tablet}) {
+        font-size: 16px;
+        padding: 8px 20px;
+    }
+`; // prevent input zoom on iPhone
 
 const SearchIcon = styled(IoIosSearch)`
     position: absolute;
-    top: 7px;
+    top: 8px;
     left: 4px;
     font-size: 16px;
+    @media (${breakpoints.tablet}) {
+        top: 10px;
+    }
 `;
 
 const SearchClearIcon = styled(IoIosCloseCircle)`
@@ -212,7 +222,8 @@ class WordSelector extends React.Component {
     };
 
     handleSearch = e => {
-        const query = e.target.value;
+        const query = e.target.value || '';
+        const normalized = query.toLowerCase();
         const { wordList } = this.props;
         this.setState({
             search: query,
@@ -220,12 +231,15 @@ class WordSelector extends React.Component {
                 query === ''
                     ? wordList
                     : wordList
-                          .filter(word => word.indexOf(query) >= 0)
+                          .filter(word => word.indexOf(normalized) >= 0)
                           .sort((a, b) => {
-                              return a.indexOf(query) - b.indexOf(query);
+                              return (
+                                  a.indexOf(normalized) - b.indexOf(normalized)
+                              );
                           }),
             highlightedOptionIndex: 0,
         });
+        this.listRef.current.scrollToItem(0);
     };
 
     handleClearSearch = e => {
