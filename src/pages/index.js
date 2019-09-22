@@ -421,7 +421,7 @@ class App extends React.Component {
                     </DetailsContainer>
                 ) : null}
                 <CenteredRow>
-                    <a href="https://github.com/mikeygee/bip39" target="_blank">
+                    <a href="https://github.com/mikeygee/bip39" target="_blank" rel="noopener noreferrer">
                         <GithubLink size={30} />
                     </a>
                 </CenteredRow>
