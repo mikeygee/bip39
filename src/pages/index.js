@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { Helmet } from 'react-helmet';
 
 import WordSelector from '../components/WordSelector';
+import { IoLogoGithub } from 'react-icons/io';
 
 import { colors, breakpoints } from '../styles';
 
@@ -178,6 +179,10 @@ const LongString = styled.span`
     border: 1px solid;
     border-radius: 3px;
     background-color: ${colors.bgSecondary};
+`;
+
+const GithubLink = styled(IoLogoGithub)`
+    color: ${colors.textPrimary}
 `;
 
 const WordCount = props => {
@@ -415,6 +420,9 @@ class App extends React.Component {
                         <LongString>{seed}</LongString>
                     </DetailsContainer>
                 ) : null}
+                <CenteredRow>
+                    <a href="https://github.com/mikeygee/bip39" target="_blank"><GithubLink size={30} /></a>
+                </CenteredRow>
             </Container>
         );
     }
