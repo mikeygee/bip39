@@ -317,7 +317,7 @@ class App extends React.Component {
             seed,
             isCompleted,
         } = this.state;
-        console.log(this.state);
+        // console.log(this.state);
         // console.log(words.join(' '));
         const wordSelectors = [];
         const entropyBits = ENTROPY_BITS_MAP[wordCount];
@@ -346,7 +346,7 @@ class App extends React.Component {
                     <title>BIP39 Mnemonic Builder</title>
                     <meta
                         name="description"
-                        content="Create a custom recovery seed phrase for your bitcoin wallet."
+                        content="Create a BIP39 custom recovery seed phrase for your bitcoin wallet."
                     ></meta>
                 </Helmet>
                 <Title>BIP39 Mnemonic Builder</Title>
