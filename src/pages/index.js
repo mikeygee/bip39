@@ -146,6 +146,7 @@ const DetailsContainer = styled.div`
         border: 1px solid;
         border-radius: 3px;
         margin: 4px 0;
+        font-size: 16px;
     }
 `;
 
