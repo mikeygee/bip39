@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "build": "gatsby build",
-    "buildProd": "gatsby build --prefix-paths",
+    "buildProd": "gatsby clean && gatsby build --prefix-paths",
     "deploy": "npm run buildProd && npm run ghPages",
     "develop": "gatsby develop",
     "dev": "gatsby develop -H $HOSTNAME -p 8000",

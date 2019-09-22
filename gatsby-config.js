@@ -16,7 +16,7 @@ module.exports = {
             options: {
                 name: 'BIP39 Mnemonic Builder',
                 short_name: 'BIP39',
-                start_url: '/',
+                start_url: '/bip39',
                 background_color: '#fff',
                 theme_color: '#f59237',
                 display: 'standalone',
