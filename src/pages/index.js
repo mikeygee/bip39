@@ -241,6 +241,7 @@ class App extends React.Component {
         this.setState({
             wordCount,
             words: updatedWords,
+            validLastWords: [],
             ...getDetails(updatedWords, wordList),
             seed: isCompleted ? getSeed(updatedWords, passphrase) : '',
             passphrase: isCompleted ? passphrase : '',
