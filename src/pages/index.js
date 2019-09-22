@@ -182,7 +182,7 @@ const LongString = styled.span`
 `;
 
 const GithubLink = styled(IoLogoGithub)`
-    color: ${colors.textPrimary}
+    color: ${colors.textPrimary};
 `;
 
 const WordCount = props => {
@@ -421,7 +421,9 @@ class App extends React.Component {
                     </DetailsContainer>
                 ) : null}
                 <CenteredRow>
-                    <a href="https://github.com/mikeygee/bip39" target="_blank"><GithubLink size={30} /></a>
+                    <a href="https://github.com/mikeygee/bip39" target="_blank">
+                        <GithubLink size={30} />
+                    </a>
                 </CenteredRow>
             </Container>
         );

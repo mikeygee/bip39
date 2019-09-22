@@ -6,9 +6,12 @@
   "license": "MIT",
   "scripts": {
     "build": "gatsby build",
+    "buildProd": "gatsby build --prefix-paths",
+    "deploy": "npm run buildProd && npm run ghPages",
     "develop": "gatsby develop",
     "dev": "gatsby develop -H $HOSTNAME -p 8000",
     "format": "prettier --write \"**/*.{js,jsx,json,md}\"",
+    "ghPages": "gh-pages -d public -m \"gatsby build\"",
     "start": "npm run develop",
     "serve": "gatsby serve",
     "serveMobile": "gatsby serve -H $HOSTNAME -p 9000",
@@ -37,6 +40,7 @@
     "@babel/preset-env": "^7.6.0",
     "babel-jest": "^24.9.0",
     "babel-preset-gatsby": "^0.2.14",
+    "gh-pages": "^2.1.1",
     "jest": "^24.9.0",
     "prettier": "^1.18.2",
     "react-test-renderer": "^16.9.0"
