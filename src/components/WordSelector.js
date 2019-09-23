@@ -145,7 +145,8 @@ const SearchClearIcon = styled(IoIosCloseCircle)`
     cursor: pointer;
 `;
 
-const isSmallScreen = () => window.innerWidth < 420;
+const isSmallScreen = () =>
+    typeof window !== 'undefined' && window.innerWidth < 420;
 
 class WordOption extends React.Component {
     handleClick = () => {
