@@ -148,6 +148,9 @@ const DetailsContainer = styled.div`
         margin: 4px 0;
         font-size: 16px;
     }
+    @media (${breakpoints.phone}) {
+        margin: 8px;
+    }
 `;
 
 const WordWithIndex = styled.div`
@@ -423,7 +426,11 @@ class App extends React.Component {
                     </DetailsContainer>
                 ) : null}
                 <CenteredRow>
-                    <a href="https://github.com/mikeygee/bip39" target="_blank" rel="noopener noreferrer">
+                    <a
+                        href="https://github.com/mikeygee/bip39"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
                         <GithubLink size={30} />
                     </a>
                 </CenteredRow>

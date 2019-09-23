@@ -23,6 +23,9 @@ const Container = styled.div`
                 color: ${colors.textSelected};
                 background-color: ${colors.bgSelected};
             }
+            @media (${breakpoints.phone}) {
+                font-size: 16px;
+            }
         }
     }
 `;
@@ -77,6 +80,35 @@ const OptionsContainer = styled.div`
     margin-top: 2px;
 `;
 
+const OptionsOverlay = styled.div`
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 2;
+    background-color: ${colors.bgOverlay};
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    > div {
+        position: relative;
+        width: 60%;
+    }
+`;
+
+const OverlayLabel = styled.label`
+    position: absolute;
+    top: -20px;
+    display: block;
+    background-color: ${colors.bgInverse};
+    color: ${colors.textInverse};
+    padding: 2px;
+    border-radius: 3px;
+    width: 60px;
+    text-align: center;
+`;
+
 const SearchInput = styled.input`
     display: block;
     outline: none;
@@ -90,7 +122,6 @@ const SearchInput = styled.input`
     -webkit-appearance: none;
     @media (${breakpoints.tablet}) {
         font-size: 16px;
-        padding: 8px 20px;
     }
 `; // prevent input zoom on iPhone
 
@@ -100,7 +131,7 @@ const SearchIcon = styled(IoIosSearch)`
     left: 4px;
     font-size: 16px;
     @media (${breakpoints.tablet}) {
-        top: 10px;
+        top: 12px;
     }
 `;
 
@@ -113,6 +144,8 @@ const SearchClearIcon = styled(IoIosCloseCircle)`
     font-size: 16px;
     cursor: pointer;
 `;
+
+const isSmallScreen = () => window.innerWidth < 420;
 
 class WordOption extends React.Component {
     handleClick = () => {
@@ -150,6 +183,7 @@ class WordSelector extends React.Component {
         this.listRef = React.createRef();
         this.selectRef = React.createRef();
         this.searchRef = React.createRef();
+        this.optionsRef = React.createRef();
         this.state = {
             options: props.wordList,
             search: '',
@@ -182,6 +216,12 @@ class WordSelector extends React.Component {
         }
     };
 
+    handleOptionsClick = e => {
+        if (isSmallScreen() && !this.optionsRef.current.contains(e.target)) {
+            this.hideOptions();
+        }
+    };
+
     showOptions = e => {
         const { word, wordList } = this.props;
         this.setState(
@@ -205,7 +245,9 @@ class WordSelector extends React.Component {
     scrollToSelection = () => {
         const { options } = this.state;
         const { word } = this.props;
-        this.searchRef.current.focus();
+        if (!isSmallScreen()) {
+            this.searchRef.current.focus();
+        }
         if (word) {
             const index = options.indexOf(word);
             this.listRef.current.scrollToItem(index, 'center');
@@ -339,6 +381,15 @@ class WordSelector extends React.Component {
         const { options, search, showOptions } = this.state;
         const { index, indexDisplay, word } = this.props;
         const inputName = `word${index}`;
+        const isOverlay = isSmallScreen();
+        const Options = isOverlay ? OptionsOverlay : OptionsContainer;
+        const listHeight = isOverlay ? window.innerHeight * 0.6 : 250;
+        const itemHeight = isOverlay ? 32 : 26;
+        const offsetStyle = isOverlay
+            ? {
+                  marginTop: listHeight * -1,
+              }
+            : null;
 
         return (
             <Container ref={this.containerRef}>
@@ -358,37 +409,44 @@ class WordSelector extends React.Component {
                 </WordIndexLabel>
                 <SelectOpenIcon onClick={this.handleClick} />
                 {showOptions ? (
-                    <OptionsContainer>
-                        <SearchInput
-                            ref={this.searchRef}
-                            type="text"
-                            value={search}
-                            onChange={this.handleSearch}
-                            onKeyDown={this.handleKeyDown}
-                        />
-                        <SearchIcon />
-                        {search !== '' ? (
-                            <SearchClearIcon onClick={this.handleClearSearch} />
-                        ) : null}
-                        <List
-                            ref={this.listRef}
-                            itemData={options}
-                            itemCount={options.length}
-                            itemSize={26}
-                            height={250}
-                            width="100%"
-                            innerElementType="ul"
-                            style={{
-                                border: '1px solid',
-                                overflowX: 'hidden',
-                                position: 'absolute',
-                                zIndex: 1,
-                                backgroundColor: colors.bgPrimary,
-                            }}
-                        >
-                            {this.renderWordOption}
-                        </List>
-                    </OptionsContainer>
+                    <Options onClick={this.handleOptionsClick}>
+                        <div ref={this.optionsRef} style={offsetStyle}>
+                            {isOverlay ? (
+                                <OverlayLabel>Word {indexDisplay}</OverlayLabel>
+                            ) : null}
+                            <SearchInput
+                                ref={this.searchRef}
+                                type="text"
+                                value={search}
+                                onChange={this.handleSearch}
+                                onKeyDown={this.handleKeyDown}
+                            />
+                            <SearchIcon />
+                            {search !== '' ? (
+                                <SearchClearIcon
+                                    onClick={this.handleClearSearch}
+                                />
+                            ) : null}
+                            <List
+                                ref={this.listRef}
+                                itemData={options}
+                                itemCount={options.length}
+                                itemSize={itemHeight}
+                                height={listHeight}
+                                width="100%"
+                                innerElementType="ul"
+                                style={{
+                                    border: '1px solid',
+                                    overflowX: 'hidden',
+                                    position: 'absolute',
+                                    zIndex: 1,
+                                    backgroundColor: colors.bgPrimary,
+                                }}
+                            >
+                                {this.renderWordOption}
+                            </List>
+                        </div>
+                    </Options>
                 ) : null}
             </Container>
         );

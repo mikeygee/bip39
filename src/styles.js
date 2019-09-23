@@ -4,6 +4,7 @@ const grayLight = '#eee';
 const grayMedium = '#999';
 const grayDark = '#222';
 const white = '#fff';
+const dimmed = 'rgba(0, 0, 0, 0.65)';
 
 export const colors = {
     bgPrimary: white,
@@ -12,6 +13,7 @@ export const colors = {
     bgSelected: blue,
     bgInverse: grayDark,
     bgHover: grayLight,
+    bgOverlay: dimmed,
     textPrimary: grayDark,
     textSecondary: grayMedium,
     textAccent: white,
@@ -20,6 +22,6 @@ export const colors = {
 };
 
 export const breakpoints = {
-    phone: 'max-width: 400px',
+    phone: 'max-width: 420px',
     tablet: 'max-width: 800px',
 };
