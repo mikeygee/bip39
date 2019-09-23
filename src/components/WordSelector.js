@@ -14,17 +14,25 @@ const Container = styled.div`
         > li {
             display: flex;
             align-items: center;
-            padding: 0 8px;
             cursor: default;
-            &.highlighted {
+            &.highlighted,
+            &:hover {
                 background-color: ${colors.bgHover};
             }
-            &.selected {
+            &.selected button {
                 color: ${colors.textSelected};
                 background-color: ${colors.bgSelected};
             }
-            @media (${breakpoints.phone}) {
+            > button {
+                border: none;
+                outline: none;
+                background-color: transparent;
+                width: 100%;
+                height: 100%;
+                text-align: left;
                 font-size: 16px;
+                padding-left: 10px;
+                touch-action: manipulation;
             }
         }
     }
@@ -163,15 +171,15 @@ class WordOption extends React.Component {
         const { word, highlighted, selected, style } = this.props;
         return (
             <li
+                role="menuitem"
                 onMouseEnter={this.handleMouseEnter}
-                onClick={this.handleClick}
                 className={cx({
                     highlighted,
                     selected,
                 })}
                 style={style}
             >
-                {word}
+                <button onClick={this.handleClick}>{word}</button>
             </li>
         );
     }
