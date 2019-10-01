@@ -2,9 +2,11 @@ import {
     LENGTH_OPTIONS,
     zeroFill,
     binaryToHex,
+    hexToBinary,
     getDetails,
     generateRandomMnemonic,
     getSeed,
+    mnemonicFromEntropy,
 } from './utils';
 
 import WORDLIST from './wordlists';
@@ -479,6 +481,22 @@ describe('binaryToHex', () => {
     });
 });
 
+describe('hexToBinary', () => {
+    test('no inputs', () => {
+        expect(hexToBinary()).toBe('');
+    });
+    test('small number', () => {
+        expect(hexToBinary('0')).toBe('00000000000000000000000000000000');
+        expect(hexToBinary('1c')).toBe('00000000000000000000000000011100');
+        expect(hexToBinary('ffff')).toBe('00000000000000001111111111111111');
+    });
+    test('large number', () => {
+        expect(hexToBinary('0123456789abcdef')).toBe(
+            '0000000100100011010001010110011110001001101010111100110111101111'
+        );
+    });
+});
+
 describe('getDetails', () => {
     test('no inputs', () => {
         expect(() => getDetails()).toThrow();
@@ -530,5 +548,22 @@ describe('getSeed', () => {
         expect(getSeed(validWords[0], 'abc')).toBe(
             '5f21fd27b862b433b767dc118b1954cf2c86a46a5ec410c4aaafd12e5ad1014bfaef465dd73aff013beffcf58edae0c4055c674869f8963fd0867b10b15ef00c'
         );
+    });
+});
+
+describe('mnemonicFromEntropy', () => {
+    test('no inputs', () => {
+        expect(() => mnemonicFromEntropy()).toThrow();
+    });
+    test('normal inputs', () => {
+        LENGTH_OPTIONS.forEach(len => {
+            const mnemonic = mnemonicFromEntropy('test', len, WORDLIST);
+            expect(mnemonic.length).toBe(len);
+            expect(
+                getDetails(mnemonic, WORDLIST).validLastWords.indexOf(
+                    mnemonic[len - 1]
+                )
+            ).toBeGreaterThan(-1);
+        });
     });
 });

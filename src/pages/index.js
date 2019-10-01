@@ -1,5 +1,5 @@
 import React from 'react';
-import styled from 'styled-components';
+import styled, { createGlobalStyle } from 'styled-components';
 import { Helmet } from 'react-helmet';
 
 import WordSelector from '../components/WordSelector';
@@ -16,22 +16,26 @@ import {
     getDetails,
     getSeed,
     generateRandomMnemonic,
+    mnemonicFromEntropy,
     zeroFill,
 } from '../utils';
 import debounce from 'lodash.debounce';
 
-const Container = styled.div`
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-        Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol';
-    box-sizing: border-box;
-    div,
-    input {
-        box-sizing: inherit;
-    }
-    color: ${colors.textPrimary};
-    @media (${breakpoints.phone}) {
-        font-size: 13px;
+const GlobalStyles = createGlobalStyle`
+    body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+            Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+            'Segoe UI Symbol';
+        box-sizing: border-box;
+        div, input
+        {
+            box-sizing: inherit;
+        }
+        color: ${colors.textPrimary};
+        @media (${breakpoints.phone}) {
+            font-size: 13px;
+        }
     }
 `;
 
@@ -58,6 +62,16 @@ const CenteredRow = styled.div`
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
+    > textarea {
+        border: 1px solid ${colors.textPrimary};
+        border-radius: 3px;
+        width: 300px;
+        height: 40px;
+        margin-top: 8px;
+        @media (${breakpoints.phone}) {
+            font-size: 16px;
+        }
+    }
 `;
 
 const CountContainer = styled.div`
@@ -220,25 +234,27 @@ const WordCount = props => {
 class App extends React.Component {
     constructor(props) {
         super(props);
+        this.textAreaRef = React.createRef();
         this.state = {
             wordCount: 24,
             words: new Array(24),
             wordList: WORDLIST,
             validLastWords: [],
             isCompleted: false,
+            entropyInput: '',
             seed: '',
             passphrase: '',
         };
     }
 
     handleCountChange = wordCount => {
-        const { words, wordList, passphrase } = this.state;
-        const updatedWords = [...new Array(wordCount)].map(
-            (val, i) => words[i]
-        );
+        const { words, wordList, passphrase, entropyInput } = this.state;
+        const updatedWords = entropyInput
+            ? mnemonicFromEntropy(entropyInput, wordCount, wordList)
+            : [...new Array(wordCount)].map((val, i) => words[i]);
         const details = getDetails(updatedWords, wordList);
         const { validLastWords, isCompleted } = details;
-        if (isCompleted) {
+        if (isCompleted && !entropyInput) {
             updatedWords[wordCount - 1] = validLastWords[0];
         }
         this.setState({
@@ -257,8 +273,10 @@ class App extends React.Component {
         this.setState({
             words,
             ...getDetails(words, wordList),
+            entropyInput: '',
             seed: getSeed(words, passphrase),
         });
+        this.textAreaRef.current.value = '';
     };
 
     handleReset = () => {
@@ -267,10 +285,31 @@ class App extends React.Component {
             words: new Array(wordCount),
             isCompleted: false,
             validLastWords: [],
+            entropyInput: '',
             seed: '',
             passphrase: '',
         });
+        this.textAreaRef.current.value = '';
     };
+
+    handleEntropy = e => {
+        this.handleEntropyDebounce(e.target.value);
+    };
+
+    handleEntropyDebounce = debounce(entropyInput => {
+        if (!entropyInput) {
+            this.handleReset();
+            return;
+        }
+        const { wordCount, wordList, passphrase } = this.state;
+        const words = mnemonicFromEntropy(entropyInput, wordCount, wordList);
+        this.setState({
+            words,
+            entropyInput,
+            ...getDetails(words, wordList),
+            seed: getSeed(words, passphrase),
+        });
+    }, 250);
 
     handleChange = ({ word, index }) => {
         const { wordCount, words, wordList, passphrase } = this.state;
@@ -286,8 +325,10 @@ class App extends React.Component {
         this.setState({
             words: updatedWords,
             ...getDetails(updatedWords, wordList),
+            entropyInput: '',
             seed: getSeed(updatedWords, passphrase),
         });
+        this.textAreaRef.current.value = '';
     };
 
     handlePassphrase = e => {
@@ -351,7 +392,8 @@ class App extends React.Component {
         }
 
         return (
-            <Container>
+            <div>
+                <GlobalStyles />
                 <Helmet>
                     <title>BIP39 Mnemonic Builder</title>
                     <meta
@@ -369,6 +411,13 @@ class App extends React.Component {
                         Generate Random
                     </GenerateButton>
                     <ResetButton onClick={this.handleReset}>Reset</ResetButton>
+                </CenteredRow>
+                <CenteredRow>
+                    <textarea
+                        ref={this.textAreaRef}
+                        placeholder="Optional user provided entropy. Type randomly here to generate a random mnemonic."
+                        onChange={this.handleEntropy}
+                    />
                 </CenteredRow>
                 <FlexRow>{wordSelectors}</FlexRow>
                 {isCompleted ? (
@@ -434,7 +483,7 @@ class App extends React.Component {
                         <GithubLink size={30} />
                     </a>
                 </CenteredRow>
-            </Container>
+            </div>
         );
     }
 }

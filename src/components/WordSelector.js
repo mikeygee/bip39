@@ -46,7 +46,6 @@ const WordSelect = styled.input`
     padding: 8px 14px;
     width: 100%;
     cursor: pointer;
-    -webkit-appearance: none;
     @media (${breakpoints.phone}) {
         font-size: 13px;
         padding: 6px 12px;
@@ -127,7 +126,6 @@ const SearchInput = styled.input`
     margin: 0;
     padding: 8px 24px;
     font-size: 12px;
-    -webkit-appearance: none;
     @media (${breakpoints.tablet}) {
         font-size: 16px;
     }

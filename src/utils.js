@@ -33,6 +33,20 @@ export function binaryToHex(binaryString = '') {
 }
 
 /**
+ * Converts hex strings to binary strings in 32 bit chunks. Only works with strings with length divisible by 8 for this specific use case.
+ *
+ * @param {string} hexString - string of length divisible by 8, consisting of valid hex characters [0-9a-f]
+ * @return {string} - string encoded as binary
+ *
+ */
+export function hexToBinary(hexString = '') {
+    const chunks = hexString.match(/.{1,8}/g) || []; // split into array of 32 bit chunks
+    return chunks
+        .map(chunk => zeroFill(parseInt(chunk, 16).toString(2), 32))
+        .join('');
+}
+
+/**
  * Maps word selections back to raw data, and determines valid last words (due to them being based on a checksum)
  *
  * @param {string[]} words - Array of words, must have length of desired mnemonic
@@ -109,6 +123,51 @@ export function getDetails(words = [], wordList = []) {
         checksum,
         validLastWords,
     };
+}
+
+/**
+ * Converts arbitrary utf8 encoded string into a mnemonic by using the SHA256 hash of the string as the entropy. If chosen mnemonic length is less than 24, use the first n bits, where n is the entropy length in bits.
+ *
+ * @param {string} entropy - utf8 string
+ * @param {number} length - desired mnemonic length in words
+ * @param {string[]} wordList - BIP 39 wordlist, 2048 words to choose from
+ * @return {string[]} - mnemonic as an array of words
+ *
+ */
+export function mnemonicFromEntropy(entropy = '', length = 24, wordList = []) {
+    if (wordList.length === 0) {
+        throw new Error('Array of 2048 words is required');
+    }
+    const entropyLength = ENTROPY_BITS_MAP[length];
+    const checksumLength = length * 11 - entropyLength;
+
+    let entropyHash = shajs('sha256')
+        .update(entropy, 'utf8')
+        .digest('hex');
+    let binary = hexToBinary(entropyHash);
+
+    if (length < 24) {
+        binary = binary.substr(0, entropyLength);
+        entropyHash = binaryToHex(binary);
+    }
+
+    // get checksum (first n bits of sha256 hash to complete 11 bit word indexes)
+    const checksumHash = shajs('sha256')
+        .update(entropyHash, 'hex')
+        .digest('hex');
+    const checksum = zeroFill(
+        parseInt(checksumHash.substr(0, 2), 16).toString(2),
+        8
+    ).substr(0, checksumLength);
+    const result = binary + checksum;
+    // map to words
+    const words = [];
+    for (let i = 0; i < length; i++) {
+        let binaryIndex = result.substr(i * 11, 11);
+        let decimalIndex = parseInt(binaryIndex, 2);
+        words.push(wordList[decimalIndex]);
+    }
+    return words;
 }
 
 export function generateRandomMnemonic(length = 24, wordList = []) {
