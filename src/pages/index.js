@@ -28,13 +28,16 @@ const GlobalStyles = createGlobalStyle`
             Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
             'Segoe UI Symbol';
         box-sizing: border-box;
-        div, input
+        div, input, textarea
         {
             box-sizing: inherit;
         }
         color: ${colors.textPrimary};
         @media (${breakpoints.phone}) {
             font-size: 13px;
+        }
+        input, textarea {
+            -webkit-appearance: none;
         }
     }
 `;
