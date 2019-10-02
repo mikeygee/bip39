@@ -68,7 +68,8 @@ const CenteredRow = styled.div`
     > textarea {
         border: 1px solid ${colors.textPrimary};
         border-radius: 3px;
-        width: 300px;
+        width: 90%;
+        max-width: 500px;
         height: 40px;
         margin-top: 8px;
         @media (${breakpoints.phone}) {
